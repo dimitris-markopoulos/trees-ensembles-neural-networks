@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import os
 import matplotlib.pyplot as plt
+import json
 
 # ===== get the columns from the information .txt file ======
 with open("split-data/original/adult.names", "r") as file:
@@ -103,13 +104,18 @@ engineered_df = pd.concat(list(engineered_df_d.values()),axis=1)
 df = pd.concat([engineered_df,full_data_clean[valid_cols]],axis=1)
 X = df.drop(columns='target')
 y = df['target']
+label_map = {'<=50K': 0, '>50K': 1}
+y = y.apply(lambda x: 0 if x == '<=50K' else 1).reset_index(drop=True)
+os.makedirs('split-data/processed', exist_ok=True)
+with open('split-data/processed/label_map.json', 'w') as f:
+    json.dump(label_map, f)
 bool_musk = (df['set'] == 'train').values
 X_tr, X_ts = X.loc[bool_musk].drop('set', axis=1), X.loc[~bool_musk].drop('set', axis=1)
 y_tr, y_ts = y[bool_musk], y[~bool_musk]
 
-X_tr.to_csv('split-data/processed/X_tr.csv')
-X_ts.to_csv('split-data/processed/X_ts.csv')
-y_tr.to_csv('split-data/processed/y_tr.csv')
-y_ts.to_csv('split-data/processed/y_ts.csv')
+X_tr.to_csv('split-data/processed/X_tr.csv',index=False)
+X_ts.to_csv('split-data/processed/X_ts.csv',index=False)
+y_tr.to_csv('split-data/processed/y_tr.csv',index=False)
+y_ts.to_csv('split-data/processed/y_ts.csv',index=False)
 
 print('Succesfully Run')
