@@ -21,44 +21,46 @@ class DecisionTree:
 
     # ===== default model -> OVERFIT =====
     def default_decision_tree(self, print_=True):
-        default_params = {
-            'criterion': 'gini',
-            'splitter': 'best',
-            'max_depth': None,
-            'min_samples_split': 2,
-            'min_samples_leaf': 1,
-            'min_weight_fraction_leaf': 0.0,
-            'max_features': None,
-            'max_leaf_nodes': None,
-            'min_impurity_decrease': 0.0,
-            'class_weight': None
-        }
 
-        model = DecisionTreeClassifier(random_state=1234, **default_params)
+        model = DecisionTreeClassifier(random_state=1234)
         model.fit(self.X_tr, self.y_tr)
 
         y_tr_pred = model.predict(self.X_tr)
         y_pred = model.predict(self.X_ts)
+        params = model.get_params()
+
+        keys_to_pull = ['max_depth', 'min_samples_leaf'] # List of keys you want
+        filtered_dict = {k: params[k] for k in keys_to_pull}
 
         if print_:
             print(f'===== Default Model =====')
             print(f'Training Accuracy: {accuracy_score(self.y_tr, y_tr_pred):.4f}')
             print(f'Testing Accuracy: {accuracy_score(self.y_ts, y_pred):.4f}')
+            print(f'Default Params: {filtered_dict}')
 
+        
         return {'model': model, 'y_tr_pred': y_tr_pred, 'y_pred': y_pred}
 
        
     # ===== tune model - grid search CV =====
-    def tune_run(self, param_grid = None):
+    def tune_run(self, param_grid=None, balance_classes=True):
 
         if param_grid == None:
             param_grid = {
                 'max_depth': [2, 3, 5, 7, 9, 11, 13, None],
                 'min_samples_leaf': [1, 5, 10, 20, 50],
+                # 'min_samples_split': [2, 10],
+                # 'max_features': [None, 'sqrt'],
+                # 'criterion': ['gini', 'entropy']
             }
 
+        if balance_classes == True:
+            class_weight_setting = 'balanced'
+        else:
+            class_weight_setting = None
+
         grid = GridSearchCV(
-            estimator=DecisionTreeClassifier(random_state=1234, class_weight='balanced'),
+            estimator=DecisionTreeClassifier(random_state=1234, class_weight=class_weight_setting),
             param_grid=param_grid,
             cv=5,
             scoring='accuracy',
@@ -72,6 +74,11 @@ class DecisionTree:
 
         self.results_df = results_df
         self.grid = grid
+        best_params = grid.best_params_
+        self.best_params = best_params
+        best_score = grid.best_score_
+        self.best_score = best_score
+        self.balance_classes = balance_classes
     
     # ===== Viz - hyperparams vs training and testing error =====
     @property
@@ -98,17 +105,15 @@ class DecisionTree:
         axes[0].set_xlabel('min_samples_leaf')
         axes[0].set_ylabel('max_depth')
         sns.heatmap(heatmap_data_ts, annot=True, fmt=".4f", cmap='viridis', ax=axes[1])
-        axes[1].set_title('Testing')
+        axes[1].set_title('Validation')
         axes[1].set_xlabel('min_samples_leaf')
         axes[1].set_ylabel('max_depth')
 
-        plt.suptitle('Decision Tree - Accuracy | Grid of Hyperparams')
+        plt.suptitle(f'Decision Tree - Accuracy | Grid of Hyperparams | Balanced = {self.balance_classes}')
         plt.savefig('media/02_decision_tree_overfitting_viz')
         plt.show()
 
     def best_model(self, print_=True):
-        best_params = self.grid.best_params_
-        best_score = self.grid.best_score_
 
         best_estimator = self.grid.best_estimator_
         y_tr_pred = best_estimator.predict(self.X_tr)
@@ -118,7 +123,7 @@ class DecisionTree:
             print(f'===== Tuned Model =====')
             print(f'Training Accuracy: {accuracy_score(self.y_tr, y_tr_pred):.4f}')
             print(f'Testing Accuracy: {accuracy_score(self.y_ts, y_pred):.4f}')
-            print(f'Validation (CV) Accuracy: {best_score:.4f}') 
-            print(f'Best params: {best_params}')
+            print(f'Validation (CV) Accuracy: {self.best_score:.4f}') 
+            print(f'Best params: {self.best_params}')
 
-        return {'best params': best_params, 'best score': best_score}
+        return self.best_params

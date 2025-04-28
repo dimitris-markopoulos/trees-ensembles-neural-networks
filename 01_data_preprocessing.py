@@ -4,6 +4,7 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 import json
+from sklearn.preprocessing import StandardScaler
 
 # ===== get the columns from the information .txt file ======
 with open("split-data/original/adult.names", "r") as file:
@@ -112,6 +113,13 @@ with open('split-data/processed/label_map.json', 'w') as f:
 bool_musk = (df['set'] == 'train').values
 X_tr, X_ts = X.loc[bool_musk].drop('set', axis=1), X.loc[~bool_musk].drop('set', axis=1)
 y_tr, y_ts = y[bool_musk], y[~bool_musk]
+
+continuous_features = ['fnlwgt', 'education-num', 'capital-gain', 'capital-loss', 'hours-per-week'] # continuous features
+
+scaler = StandardScaler()
+scaler.fit(X_tr[continuous_features]) # Fit only on X_tr continuous columns
+X_tr.loc[:, continuous_features] = scaler.transform(X_tr[continuous_features])
+X_ts.loc[:, continuous_features] = scaler.transform(X_ts[continuous_features])
 
 X_tr.to_csv('split-data/processed/X_tr.csv',index=False)
 X_ts.to_csv('split-data/processed/X_ts.csv',index=False)
