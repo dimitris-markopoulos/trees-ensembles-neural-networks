@@ -114,12 +114,14 @@ bool_musk = (df['set'] == 'train').values
 X_tr, X_ts = X.loc[bool_musk].drop('set', axis=1), X.loc[~bool_musk].drop('set', axis=1)
 y_tr, y_ts = y[bool_musk], y[~bool_musk]
 
-continuous_features = ['fnlwgt', 'education-num', 'capital-gain', 'capital-loss', 'hours-per-week'] # continuous features
-
-scaler = StandardScaler()
-scaler.fit(X_tr[continuous_features]) # Fit only on X_tr continuous columns
-X_tr.loc[:, continuous_features] = scaler.transform(X_tr[continuous_features])
-X_ts.loc[:, continuous_features] = scaler.transform(X_ts[continuous_features])
+### TO SCALE - NOT NEEDED FOR TREE METHODS ####
+# continuous_features = ['fnlwgt', 'education-num', 'capital-gain', 'capital-loss', 'hours-per-week'] # continuous features
+# X_tr[continuous_features] = X_tr[continuous_features].astype(float)
+# X_ts[continuous_features] = X_tr[continuous_features].astype(float)
+# scaler = StandardScaler()
+# scaler.fit(X_tr[continuous_features]) # Fit only on X_tr continuous columns
+# X_tr.loc[:, continuous_features] = scaler.transform(X_tr[continuous_features])
+# X_ts.loc[:, continuous_features] = scaler.transform(X_ts[continuous_features])
 
 X_tr.to_csv('split-data/processed/X_tr.csv',index=False)
 X_ts.to_csv('split-data/processed/X_ts.csv',index=False)
