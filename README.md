@@ -1,3 +1,5 @@
+**WORK IN PROGRESS**
+
 # Trees & Ensemble Models – UCI Adult Dataset
 
 This project explores decision trees and ensemble methods (Random Forest, AdaBoost) on the UCI Adult Income dataset to analyze model behavior, overfitting tendencies, and feature importances.
