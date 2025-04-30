@@ -118,7 +118,7 @@ class TreeModel:
                 plt.savefig(save_path, dpi=300)
             plt.show()
 
-    def viz_heatmap_cv(self, top_two_params_for_overfitting):
+    def viz_heatmap_cv(self, top_two_params_for_overfitting,dir_save_path):
         df = self.results_df.copy()
         param1, param2 = top_two_params_for_overfitting
         df[param1] = df['params'].apply(lambda x: x[param1])
@@ -134,7 +134,7 @@ class TreeModel:
         axes[1].set_title('Validation Accuracy')
         sns.heatmap(diff, annot=True, fmt=".3f", cmap='coolwarm', center=0, ax=axes[2])
         axes[2].set_title('Overfitting (Train - Val)')
-        filename = f'media/{self.name.lower().replace(" ", "_")}_heatmap_{param1}_{param2}.png'
+        filename = dir_save_path + f'/{self.name.lower().replace(" ", "_")}_heatmap_{param1}_{param2}.png'
         plt.tight_layout(rect=[0, 0, 1, 0.95])
         plt.suptitle(f'{self.name} | Accuracy Grid | {param1} vs {param2}')
         plt.savefig(filename, bbox_inches='tight')
