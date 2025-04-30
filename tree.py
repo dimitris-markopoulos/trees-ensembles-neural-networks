@@ -123,15 +123,19 @@ class TreeModel:
         param1, param2 = top_two_params_for_overfitting
         df[param1] = df['params'].apply(lambda x: x[param1])
         df[param2] = df['params'].apply(lambda x: x[param2])
-        tr = df.pivot_table(index=param1, columns=param2, values='mean_train_score')
-        ts = df.pivot_table(index=param1, columns=param2, values='mean_test_score')
-        fig, axes = plt.subplots(1, 2, figsize=(16, 6))
-        sns.heatmap(tr, annot=True, fmt=".3f", cmap='viridis', ax=axes[0])
-        axes[0].set_title('Training Accuracy')
-        sns.heatmap(ts, annot=True, fmt=".4f", cmap='viridis', ax=axes[1])
-        axes[1].set_title('Validation Accuracy')
-        plt.suptitle(f'{self.name} | Accuracy Grid\n{param1} vs {param2}', fontsize=14)
-        filename = f'media/{self.name.lower().replace(" ", "_")}_heatmap_{param1}_{param2}.png'
-        plt.savefig(filename)
-        plt.show()
+        train = df.pivot_table(index=param1, columns=param2, values='mean_train_score')
+        test = df.pivot_table(index=param1, columns=param2, values='mean_test_score')
+        diff = train - test
 
+        fig, axes = plt.subplots(1, 3, figsize=(22, 6))
+        sns.heatmap(train, annot=True, fmt=".3f", cmap='viridis', ax=axes[0])
+        axes[0].set_title('Training Accuracy')
+        sns.heatmap(test, annot=True, fmt=".3f", cmap='viridis', ax=axes[1])
+        axes[1].set_title('Validation Accuracy')
+        sns.heatmap(diff, annot=True, fmt=".3f", cmap='coolwarm', center=0, ax=axes[2])
+        axes[2].set_title('Overfitting (Train - Val)')
+        filename = f'media/{self.name.lower().replace(" ", "_")}_heatmap_{param1}_{param2}.png'
+        plt.tight_layout(rect=[0, 0, 1, 0.95])
+        plt.suptitle(f'{self.name} | Accuracy Grid | {param1} vs {param2}')
+        plt.savefig(filename, bbox_inches='tight')
+        plt.show()
