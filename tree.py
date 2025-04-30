@@ -24,9 +24,9 @@ class TreeModel:
         self.param_grid = param_grid 
         self.hyper_grid = list(self.param_grid.keys())
 
-        if balance_classes == True:
+        if balance_classes is True and 'class_weight' in self.base_model.get_params():
             self.base_model.set_params(class_weight='balanced')
-        else:
+        elif 'class_weight' in self.base_model.get_params():
             self.base_model.set_params(class_weight=None)
 
         grid = GridSearchCV(
