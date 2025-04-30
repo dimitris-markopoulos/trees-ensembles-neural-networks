@@ -21,6 +21,7 @@ df_tr['set'] = 'train'
 df_ts['set'] = 'test'
 full_data = pd.concat([df_tr, df_ts]).reset_index(drop=True)
 full_data['target'] = full_data['class'].apply(lambda x: 1 if x in [' <=50K', ' <=50K.'] else 0)
+full_data = full_data.drop(columns=['class'])
 
 # ===== viz and clean missing data ======
 perc_missing_df = pd.DataFrame(full_data.isna().sum() / full_data.shape[0]).apply(lambda x: round(100*x,2)).rename(columns={0:'percent_missing'})
@@ -77,7 +78,7 @@ valid_cols = [
 'capital-loss', 'hours-per-week', 'target', 'set'
 ]
 
-assert len(list_col_names_to_encode) + len(valid_cols) == len(full_data_clean.columns) - 1, 'not true' # - 1 -> target
+assert len(list_col_names_to_encode) + len(valid_cols) == len(full_data_clean.columns), 'ERROR'
 
 # Loop function over relevant columns
 for col in list_col_names_to_encode:
@@ -89,17 +90,20 @@ engineered_df = pd.concat(list(engineered_df_d.values()),axis=1)
 
 # ===== split into tr, ts ======
 df = pd.concat([engineered_df,full_data_clean[valid_cols]],axis=1)
-X = df.drop(columns='target')
-y = df['target']
+X = df.copy().drop(columns='target')
+y = df.copy()[['target','set']]
 label_map = {0: [' <=50K', ' <=50K.'], 1: [' >50K', ' >50K.']}
-y = y.apply(lambda x: 0 if x == '<=50K' else 1).reset_index(drop=True)
+
 os.makedirs('split-data/processed', exist_ok=True)
 with open('split-data/processed/label_map.json', 'w') as f:
     json.dump(label_map, f)
-bool_musk = (df['set'] == 'train').values
-X_tr, X_ts = X.loc[bool_musk].drop('set', axis=1), X.loc[~bool_musk].drop('set', axis=1)
-y_tr, y_ts = y[bool_musk], y[~bool_musk]
+X_bool = (df['set'] == 'train').values
+X_tr, X_ts = X.loc[X_bool].drop('set', axis=1), X.loc[~X_bool].drop('set', axis=1)
 
+y_bool = y['set'] == 'train'
+y_tr, y_ts = y.loc[y_bool].drop('set', axis=1), y.loc[~y_bool].drop('set', axis=1)
+
+# ===== save processed data ======
 X_tr.to_csv('split-data/processed/X_tr.csv',index=False)
 X_ts.to_csv('split-data/processed/X_ts.csv',index=False)
 y_tr.to_csv('split-data/processed/y_tr.csv',index=False)
