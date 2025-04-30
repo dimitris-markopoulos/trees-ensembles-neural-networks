@@ -49,6 +49,7 @@ class TreeModel:
         self.y_ts_pred = y_pred
         self.tr_accuracy = accuracy_score(self.y_tr, y_tr_pred)
         self.ts_accuracy = accuracy_score(self.y_ts, y_pred)
+        self.cv_validation_accuracy = grid.best_score_
         self.tuned_params = grid.best_params_
     
     @property
@@ -56,11 +57,12 @@ class TreeModel:
         print(f'{str(self.base_model)}')
         print(f'Grid - Hyperparameters: {self.hyper_grid}')
         print(f'Train Accuracy: {self.tr_accuracy*100:.3f}%')
+        print(f'CV Validation Accuracy: {self.cv_validation_accuracy*100:.3f}%')
         print(f'Test Accuracy: {self.ts_accuracy*100:.3f}%')
 
     def plot_validation_hyperparam_grid_row(self, param_list, figsize=(5, 4), colors=['purple', 'black'], save_path=None):
         n_params = len(param_list)
-        df = self.results_df
+        df = self.results_df.copy()
 
         if n_params == 1:
 
@@ -115,25 +117,21 @@ class TreeModel:
             if save_path:
                 plt.savefig(save_path, dpi=300)
             plt.show()
-        
-    # @property
-    # def viz_cv(self):
-    #     df = self.results_df.copy()
-    #     if 'param_max_depth' in df.columns and 'param_min_samples_leaf' in df.columns:
-    #         df['param_max_depth'] = df['param_max_depth'].apply(lambda x: 'None' if x is None else int(x))
-    #         df['param_min_samples_leaf'] = df['param_min_samples_leaf'].astype(int)
 
-    #         tr = df.pivot_table(index='param_max_depth', columns='param_min_samples_leaf', values='mean_train_score')
-    #         ts = df.pivot_table(index='param_max_depth', columns='param_min_samples_leaf', values='mean_test_score')
+    def viz_heatmap_cv(self, top_two_params_for_overfitting):
+        df = self.results_df.copy()
+        param1, param2 = top_two_params_for_overfitting
+        df[param1] = df['params'].apply(lambda x: x[param1])
+        df[param2] = df['params'].apply(lambda x: x[param2])
+        tr = df.pivot_table(index=param1, columns=param2, values='mean_train_score')
+        ts = df.pivot_table(index=param1, columns=param2, values='mean_test_score')
+        fig, axes = plt.subplots(1, 2, figsize=(16, 6))
+        sns.heatmap(tr, annot=True, fmt=".3f", cmap='viridis', ax=axes[0])
+        axes[0].set_title('Training Accuracy')
+        sns.heatmap(ts, annot=True, fmt=".4f", cmap='viridis', ax=axes[1])
+        axes[1].set_title('Validation Accuracy')
+        plt.suptitle(f'{self.name} | Accuracy Grid\n{param1} vs {param2}', fontsize=14)
+        filename = f'media/{self.name.lower().replace(" ", "_")}_heatmap_{param1}_{param2}.png'
+        plt.savefig(filename)
+        plt.show()
 
-    #         fig, axes = plt.subplots(1, 2, figsize=(16, 6))
-    #         sns.heatmap(tr, annot=True, fmt=".3f", cmap='viridis', ax=axes[0])
-    #         axes[0].set_title('Training')
-    #         sns.heatmap(ts, annot=True, fmt=".4f", cmap='viridis', ax=axes[1])
-    #         axes[1].set_title('Validation')
-
-    #         plt.suptitle(f'{self.name} | Accuracy Grid | Balanced = {self.balance_classes}')
-    #         plt.savefig(f'media/{self.name.lower().replace(" ", "_")}_grid_viz.png')
-    #         plt.show()
-    #     else:
-    #         print("Cannot generate heatmap — pivot table keys missing.")
