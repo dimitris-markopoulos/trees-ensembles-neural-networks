@@ -33,8 +33,3 @@ This project explores decision trees and ensemble methods (Random Forest, AdaBoo
 Compare and contrast how each model overfits, tunes, and ranks features.  
 Do models identify similar top features? Discuss the consistency and meaning of those rankings.
 
-### 📘 Preview: Report
-
-![Page 1](07_report.pdf)
-
-
