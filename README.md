@@ -27,6 +27,8 @@ This project explores decision trees and ensemble methods (Random Forest, AdaBoo
 - Overfitting maps (train vs. validation accuracy gap)
 - Top 10 feature importances per model
 
+![Decision Tree Plot](media/02_decision_trees/balanced_decision_tree_viz.png)
+
 ## Interpretation
 Compare and contrast how each model overfits, tunes, and ranks features.  
 Do models identify similar top features? Discuss the consistency and meaning of those rankings.
