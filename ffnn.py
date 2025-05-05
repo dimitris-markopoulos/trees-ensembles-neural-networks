@@ -52,25 +52,30 @@ class FFNN:
         })
         return df, results_df
 
-    def plot_validation_hyperparam_grid_row(self, results_df, param, ax, colors=['purple', 'black']):
+    def plot_validation_hyperparam_grid_row(self, results_df, param, ax, accuracy_plot=True, colors=['purple', 'black']):
         scores = ['mean_test_score', 'mean_train_score']
         param_df = results_df['params'].apply(lambda x: x.get(param, None)).to_frame(name=param)
         plot_df = pd.concat([param_df, results_df[scores]], axis=1)
         grouped = plot_df.groupby(param)[scores].mean().reset_index().sort_values(param)
         x_vals = grouped[param].astype(str)
+        if not accuracy_plot:
+            grouped['mean_test_score'] = 1 - grouped['mean_test_score']
+            grouped['mean_train_score'] = 1 - grouped['mean_train_score']
         ax.plot(x_vals, grouped['mean_test_score'], label='Validation', color=colors[0])
         ax.plot(x_vals, grouped['mean_train_score'], label='Training', color=colors[1])
         ax.scatter(x_vals, grouped['mean_test_score'], color=colors[0], alpha=0.5)
         ax.scatter(x_vals, grouped['mean_train_score'], color=colors[1], alpha=0.5)
         ax.set_title(f"FFNN | {param}")
         ax.set_xlabel(param)
-        ax.set_ylabel("Accuracy")
+        ax.set_ylabel("Accuracy" if accuracy_plot else "Error (1 - Accuracy)")
 
-    def plot_all_validation_curves(self, search, param_list, save_path=None):
+    def plot_all_validation_curves(self, search, param_list, accuracy_plot=True, save_path=None):
         _, results_df = self.extract_cv_results(search)
         fig, axes = plt.subplots(1, len(param_list), figsize=(5 * len(param_list), 4))
+
         for ax, param in zip(axes, param_list):
-            self.plot_validation_hyperparam_grid_row(results_df, param, ax)
+            self.plot_validation_hyperparam_grid_row(results_df, param, ax, accuracy_plot=accuracy_plot)
+
         axes[0].legend()
         plt.tight_layout()
         if save_path:
