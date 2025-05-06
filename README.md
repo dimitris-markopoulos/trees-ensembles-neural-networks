@@ -2,7 +2,7 @@
 
 This project explores decision trees and ensemble methods (Random Forest, AdaBoost) on the UCI Adult Income dataset to analyze model behavior, overfitting tendencies, and feature importances.
 
-## 📁 Dataset
+## Dataset
 - Source: [UCI Adult Income Dataset](https://archive.ics.uci.edu/ml/datasets/adult)
 - Task: Binary classification – Predict whether income >$50K based on demographic features
 
